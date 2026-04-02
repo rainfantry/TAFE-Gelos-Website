@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gelos Enterprises - Jobs</title>
+  <!-- Pure custom CSS - No Bootstrap -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Skip navigation for accessibility -->
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <img src="img/logo-header.png" alt="Gelos Enterprises - Home">
+      </a>
+      <!-- Hamburger button for mobile - controlled by pure JS -->
+      <button class="navbar-toggler" type="button" id="navToggle" 
+              aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Collapsible navigation menu -->
+      <div class="navbar-collapse" id="mainNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="tasks.html">Tasks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="contact.html">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main id="main-content" class="container my-4">
+    <h1>Task Tracker</h1>
+
+    <!-- Search section -->
+    <section class="search-section" aria-label="Search Tasks">
+      <h2>Search Tasks</h2>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-8">
+          <label for="searchInput" class="form-label">Search by Task name</label>
+          <input type="text" class="form-control" id="searchInput"
+                 placeholder="Enter exact Task name">
+        </div>
+        <div class="col-md-4">
+          <button type="button" class="btn btn-ge-primary w-100" id="searchBtn">Search</button>
+        </div>
+      </div>
+      <!-- Search results display area -->
+      <div id="searchResult" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Add Task form -->
+    <section class="task-form mb-4" aria-label="Add new Task">
+      <h2>Add New Task</h2>
+      <form id="taskForm" novalidate>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="taskName" class="form-label">Task Name <span aria-hidden="true">*</span></label>
+            <input type="text" class="form-control" id="taskName" required
+                   aria-required="true" placeholder="Enter Task name">
+            <div class="invalid-feedback">Please enter a Task name.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="dueDate" class="form-label">Due Date <span aria-hidden="true">*</span></label>
+            <input type="date" class="form-control" id="dueDate" required
+                   aria-required="true">
+            <div class="invalid-feedback">Please select a due date.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="priority" class="form-label">Priority Level <span aria-hidden="true">*</span></label>
+            <select class="form-select" id="priority" required aria-required="true">
+              <option value="" disabled selected>Select priority</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+            <div class="invalid-feedback">Please select a priority level.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="consultant" class="form-label">Staff Member (optional)</label>
+            <select class="form-select" id="consultant">
+              <option value="" selected>None</option>
+              <option value="George Wu - CEO">George Wu - CEO</option>
+              <option value="George Wu - Draftperson">George Wu - ICT Manager</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-ge-gold">Add Task</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Task list -->
+    <section aria-label="Task list">
+      <h2>Task List</h2>
+      <div class="table-responsive">
+        <table class="table table-striped task-table" id="taskTable">
+          <thead>
+            <tr>
+              <th scope="col">Task Name</th>
+              <th scope="col">Due Date</th>
+              <th scope="col">Priority</th>
+              <th scope="col">Consultant</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="taskBody">
+            <!-- Tasks inserted by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <p id="noJobs" class="text-muted">No Tasks added yet. Use the form above to create a Job.</p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3">
+          <a href="index.html">
+            <img src="img/logo-footer.png" class="footer-logo" alt="Gelos Enterprises - Home">
+          </a>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <p class="mb-1">
+            <strong>P</strong>: (02) 0000 0000<br>
+            <strong>E</strong>: george.wu14@studytafensw.edu.au<br>
+            <strong>A</strong>: Sydney, New South Wales, Australia
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="row text-center">
+        <div class="col-12">
+          <p class="mb-1">
+            <a href="GE_Code-of-conduct-policy-and-procedure.pdf">Privacy Policy</a>
+            |
+            <a href="GE_Website-Development-Policy-and-Procedure.pdf">Internet Usage Policy</a>
+          </p>
+          <p class="footer-acknowledgement">
+            Our Policy
+          </p>
+          <p class="footer-acknowledgement">
+            &copy; Gelos Enterprises 2026.
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Pure JavaScript - No Bootstrap -->
+  <script src="app.js"></script>
+</body>
+</html>
