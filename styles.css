@@ -1,0 +1,726 @@
+/* ============================================================
+   GELOS ENTERPRISES - Task Manager System
+   Pure CSS Stylesheet (No Bootstrap)
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. CSS VARIABLES (Custom Properties)
+   ------------------------------------------------------------ */
+:root {
+  --ge-gold: #b59a5b;
+  --ge-dark: #3d4654;
+  --ge-teal: #2a8a9e;
+  --ge-light: #f8f9fa;
+  --ge-white: #ffffff;
+  --ge-body: #333333;
+  --ge-border: #ddd;
+  --ge-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* ------------------------------------------------------------
+   2. RESET AND BASE STYLES
+   ------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--ge-body);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: var(--ge-white);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ------------------------------------------------------------
+   3. TYPOGRAPHY
+   ------------------------------------------------------------ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--ge-gold);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+h1 { font-weight: 400; font-size: 2rem; }
+h2 { font-size: 1.5rem; margin-top: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.1rem; }
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--ge-teal);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------
+   4. LAYOUT - Pure CSS Grid System (Replaces Bootstrap grid)
+   ------------------------------------------------------------ */
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Row with flexbox */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+/* Column base */
+.col,
+.col-12,
+.col-md-4,
+.col-md-6,
+.col-md-8,
+.col-lg-8 {
+  position: relative;
+  width: 100%;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Column widths */
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+
+/* Responsive columns for tablets and up (768px+) */
+@media (min-width: 768px) {
+  .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-md-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+}
+
+/* Responsive columns for desktops and up (992px+) */
+@media (min-width: 992px) {
+  .col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+}
+
+/* Utility classes for alignment */
+.align-items-center { align-items: center; }
+.align-items-end { align-items: flex-end; }
+.text-center { text-align: center; }
+
+@media (min-width: 768px) {
+  .text-md-start { text-align: left; }
+  .text-md-end { text-align: right; }
+}
+
+/* Spacing utilities */
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.my-4 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.me-1 { margin-right: 0.25rem; }
+.ms-auto { margin-left: auto; }
+
+.g-2 { gap: 0.5rem; }
+.g-3 { gap: 1rem; }
+
+/* ------------------------------------------------------------
+   5. NAVIGATION (Pure CSS/JS - Replaces Bootstrap Navbar)
+   ------------------------------------------------------------ */
+.navbar {
+  background-color: var(--ge-white);
+  border-bottom: 3px solid var(--ge-teal);
+  box-shadow: 0 4px 8px var(--ge-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0.5rem 0;
+}
+
+.navbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.navbar-brand img {
+  max-width: 180px;
+  height: auto;
+}
+
+/* Navigation toggle button (hamburger) */
+.navbar-toggler {
+  display: none; /* Hidden on desktop */
+  background: transparent;
+  border: 1px solid var(--ge-border);
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.navbar-toggler-icon {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: var(--ge-dark);
+  position: relative;
+}
+
+.navbar-toggler-icon::before,
+.navbar-toggler-icon::after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 3px;
+  background-color: var(--ge-dark);
+  left: 0;
+}
+
+.navbar-toggler-icon::before { top: -8px; }
+.navbar-toggler-icon::after { top: 8px; }
+
+/* Navigation menu */
+.navbar-nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  display: inline-block;
+}
+
+.nav-link {
+  color: var(--ge-dark);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 1rem;
+  display: block;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  color: var(--ge-teal);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  color: var(--ge-teal);
+  border-bottom-color: var(--ge-teal);
+}
+
+/* Mobile navigation styles */
+@media (max-width: 991px) {
+  .navbar-toggler {
+    display: block;
+  }
+  
+  .navbar-collapse {
+    display: none; /* Hidden by default on mobile */
+    width: 100%;
+    flex-basis: 100%;
+  }
+  
+  .navbar-collapse.show {
+    display: block; /* Shown when toggled */
+  }
+  
+  .navbar-nav {
+    flex-direction: column;
+    padding-top: 1rem;
+  }
+  
+  .nav-link {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--ge-border);
+  }
+}
+
+/* ------------------------------------------------------------
+   6. HERO IMAGE
+   ------------------------------------------------------------ */
+.hero-img {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 2rem;
+}
+
+/* ------------------------------------------------------------
+   7. MAIN CONTENT
+   ------------------------------------------------------------ */
+main {
+  min-height: 60vh;
+}
+
+.content-section {
+  padding: 2rem 0;
+}
+
+/* Instructions list styling */
+.instructions-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.instructions-list li {
+  margin-bottom: 0.75rem;
+}
+
+.instructions-list ul {
+  list-style: circle;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ------------------------------------------------------------
+   8. FORMS (Replaces Bootstrap form classes)
+   ------------------------------------------------------------ */
+.form-label {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--ge-dark);
+}
+
+.form-control,
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ge-body);
+  background-color: var(--ge-white);
+  background-clip: padding-box;
+  border: 1px solid var(--ge-border);
+  border-radius: 0.25rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ge-teal);
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(42, 138, 158, 0.25);
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+/* Form validation styles */
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.was-validated .form-select:invalid ~ .invalid-feedback {
+  display: block;
+}
+
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+  border-color: #dc3545;
+}
+
+.was-validated .form-control:invalid:focus,
+.was-validated .form-select:invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* ------------------------------------------------------------
+   9. BUTTONS (Replaces Bootstrap button classes)
+   ------------------------------------------------------------ */
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(42, 138, 158, 0.25);
+}
+
+/* Button sizes */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* Button width */
+.w-100 {
+  width: 100%;
+}
+
+/* Primary button - Gelos Gold */
+.btn-ge-gold,
+.btn-ra-gold {
+  background-color: var(--ge-gold);
+  border-color: var(--ge-gold);
+  color: var(--ge-white);
+}
+
+.btn-ge-gold:hover,
+.btn-ra-gold:hover {
+  background-color: #9e834d;
+  border-color: #9e834d;
+  color: var(--ge-white);
+}
+
+/* Primary button - Teal */
+.btn-ge-primary {
+  background-color: var(--ge-teal);
+  border-color: var(--ge-teal);
+  color: var(--ge-white);
+}
+
+.btn-ge-primary:hover {
+  background-color: #237a8b;
+  border-color: #237a8b;
+}
+
+/* Danger button (Delete) */
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: var(--ge-white);
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+/* ------------------------------------------------------------
+   10. TABLES (Replaces Bootstrap table classes)
+   ------------------------------------------------------------ */
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  vertical-align: top;
+  border-top: 1px solid var(--ge-border);
+  text-align: left;
+}
+
+.table thead th {
+  vertical-align: bottom;
+  border-bottom: 2px solid var(--ge-border);
+}
+
+/* Striped table */
+.table-striped tbody tr:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Task table custom styles */
+.task-table {
+  margin-top: 1.5rem;
+}
+
+.task-table th {
+  background-color: var(--ge-dark);
+  color: var(--ge-white);
+  font-weight: 500;
+}
+
+.task-table td {
+  vertical-align: middle;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ------------------------------------------------------------
+   11. TASK-SPECIFIC STYLES
+   ------------------------------------------------------------ */
+.task-form {
+  background: var(--ge-light);
+  border: 1px solid var(--ge-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.task-completed td {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Priority badges */
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.6em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+}
+
+.badge-low {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.badge-medium {
+  background-color: var(--ge-gold);
+  color: #fff;
+}
+
+.badge-high {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+/* Search section */
+.search-section {
+  background: var(--ge-light);
+  border: 1px solid var(--ge-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-result {
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.search-result.found {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.search-result.not-found {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+/* No jobs message */
+.text-muted {
+  color: #6c757d;
+}
+
+/* Contact form */
+.contact-form {
+  background: var(--ge-light);
+  border: 1px solid var(--ge-border);
+  border-radius: 0.5rem;
+  padding: 2rem;
+}
+
+/* Alert/Success message */
+.alert {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+/* ------------------------------------------------------------
+   12. FOOTER
+   ------------------------------------------------------------ */
+footer {
+  background-color: var(--ge-dark);
+  color: var(--ge-white);
+  padding: 2rem 0;
+  margin-top: 3rem;
+}
+
+footer a {
+  color: var(--ge-gold);
+  text-decoration: none;
+}
+
+footer a:hover,
+footer a:focus {
+  color: #d4b96a;
+  text-decoration: underline;
+}
+
+footer .footer-logo {
+  max-width: 250px;
+  height: auto;
+}
+
+footer .footer-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 1.5rem 0;
+}
+
+footer .footer-acknowledgement {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.5rem;
+}
+
+/* ------------------------------------------------------------
+   13. ACCESSIBILITY
+   ------------------------------------------------------------ */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--ge-teal);
+  color: #fff;
+  padding: 8px 16px;
+  z-index: 9999;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Focus indicators for WCAG */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ge-teal);
+  outline-offset: 2px;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------
+   14. RESPONSIVE ADJUSTMENTS
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .hero-img {
+    max-height: 250px;
+  }
+
+  .task-form, .contact-form, .search-section {
+    padding: 1rem;
+  }
+
+  .task-table {
+    font-size: 0.85rem;
+  }
+
+  .task-table .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  footer .footer-logo {
+    max-width: 180px;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand img {
+    max-width: 140px;
+  }
+  
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  .row {
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+  
+  .col,
+  .col-12,
+  .col-md-4,
+  .col-md-6,
+  .col-md-8,
+  .col-lg-8 {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
