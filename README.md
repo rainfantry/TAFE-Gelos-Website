@@ -2,6 +2,8 @@
 
 A pure HTML/CSS/JavaScript task manager built without Bootstrap or external libraries. Three pages: home (landing), tasks (job tracker with search), and contact (form with validation).
 
+https://rainfantry.github.io/TAFE-Gelos-Website/
+
 ## Architecture
 
 ```
