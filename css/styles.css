@@ -1,0 +1,336 @@
+/* STYLESHEET GELOS WEBSITE GEORGE WU */
+/* CSS BASIC LAYOUT:
+
+element {
+    property: value;
+}
+*/
+
+* { /* ALL SELECTORS */
+  box-sizing: border-box; /* ALL Include padding and border in element's total width and height */
+}
+
+/* ROOT CUSTOM PROPERTIES */
+:root {
+    --gold: #DDAB5E;
+    --blue: #077A99;
+    --gray: #424754;
+    --tint: #cfd2d4;
+    --bronze: #A08463;
+}
+
+/* FONT STYLES: FROM COMPANY STYLE GUIDE */
+
+h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 36px;
+    color: var(--bronze);
+    margin-top: 24px;
+    margin-bottom: 16px;
+    line-height: 1;
+}
+
+h2 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 28px;
+    color: var(--gray);
+    margin-top: 24px;
+    margin-bottom: 16px;
+    line-height: 1;
+}
+
+h3 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 24px;
+    color: var(--blue);
+    margin-top: 24px;
+    margin-bottom: 16px;
+    line-height: 1;
+}
+
+h4 {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 18px;
+    color: #000000;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+}
+
+h5 {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 16px;
+    color: var(--gray);
+    margin-top: 13px;
+    margin-bottom: 13px;
+    line-height: 1.2;
+}
+
+p {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 16px;
+    color: var(--gray);
+    margin-top: 13px;
+    margin-bottom: 13px;
+    line-height: 1.2;
+}
+
+ul {
+    list-style-type: circle;
+    padding-left: 24px;
+}
+ul li {
+    margin: 3px 0;
+    line-height: 1.2;
+}
+
+ol {
+  list-style-type: decimal;
+  padding-left: 24px;
+}
+ol li {
+  margin: 3px 0;
+  line-height: 1.2;
+}
+
+footer {
+    background-color: var(--gray);
+    margin: 0;
+    line-height: 1;
+    padding: 16px;
+    text-align: center;
+}
+
+footer p {
+    color: #ffffff;
+    font-size: 14px;
+    font-family: Calibri, Arial, sans-serif;
+}
+/* CLASSES */
+.logo {
+    max-width: 150px; /* Limit the logo size */
+    height: auto;      /* Maintain aspect ratio */
+}
+
+.hero-img {
+    width: 100%; /* Ensure the image fills the width of its container */
+    max-height: 350px;     /* Limit the height to prevent excessive vertical space */
+    object-fit: cover; /* Crop the image to fill the container */   
+    display: block; /* Remove default inline spacing */
+}
+
+.footer-logo {
+    max-width: 120px; /* Limit the logo size in the footer */
+    height: auto;      /* Maintain aspect ratio */
+}   
+
+.search-section, .task-form, .contact-form {
+    border-radius: 8px;
+    background-color: var(--tint);
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--gray);
+}
+
+/* ID SELECTORS */
+
+#navToggle, #themeToggle {
+    background: transparent;
+    border: 1px solid var(--gray);
+    color: var(--gray);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+#navToggle:hover, #themeToggle:hover {   /*pseudo-class for hover state*/
+    background-color: var(--gold);
+    color: #ffffff;
+}
+
+#themeToggle:focus, #navToggle:focus {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+/* NAV LINKS */
+
+nav a {
+    text-decoration: none;
+    color: var(--gray);
+    padding: 8px 12px;
+    display: inline-block; /* Ensure the entire area is clickable */
+}
+
+nav a[aria-current="page"]   /* Attribute selector to target links with aria-current="page" */
+    {
+        font-weight: bold;
+        color: var(--blue);
+        border-bottom: 2px solid var(--blue);
+    }
+
+a[href$=".pdf"] { /* Attribute selector to target links that end with .pdf */
+    color: var(--bronze);
+    font-style: italic;
+}
+
+/* HORIZONTAL FLEXBOX */
+
+#navToggle {
+    display: none;   /* hide the hamburger menu by default */
+}
+
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--gray);
+}
+
+#mainNav {
+    display: flex;
+    gap: 16px; /* Space between nav links */
+    align-items: center;
+}
+
+nav ul {
+    display:flex;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* MEDIA QUERY FOR RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    #navToggle {
+        display: inline-block; } /* Show the hamburger menu button on small screens */
+    #mainNav {
+        display: none; /* Hide the navigation links by default on small screens */
+    }
+    #mainNav.show {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 64px;
+        right: 0;
+        background-color: var(--tint);
+        padding: 16px;
+        border: 1px solid var(--gray);
+        Z-INDEX: 100;
+    }
+    [data-theme="dark"] #mainNav.show {
+        background-color: #232631;
+    }
+    
+    .hero-img {
+        max-height: 200px; /* Reduce hero image height on smaller screens */
+    }
+}
+
+/* ERROR POPUP */
+.form-error {
+    display: none;
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Completed task row - strikethrough + dimmed */
+.task-completed td {
+    text-decoration: line-through;
+    opacity: 0.6;
+    color: #6c757d;
+}
+/* ============================================================
+   DARK MODE — activated by [data-theme="dark"] on the <html> element.
+   JS toggles the attribute; CSS does all the colour-swapping.
+   ============================================================ */
+[data-theme="dark"] {
+    --gold:   #f0c576;
+    --blue:   #4ec3e6;
+    --gray:   #e6e6ea;
+    --tint:   #2c2f38;
+    --bronze: #d6b88f;
+}
+
+[data-theme="dark"] body {
+    background-color: #1a1c22;
+    color: var(--gray);
+}
+
+[data-theme="dark"] nav,
+[data-theme="dark"] footer,
+[data-theme="dark"] .search-section,
+[data-theme="dark"] .task-form {
+    background-color: #232631;
+    color: var(--gray);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: #2c2f38;
+    color: var(--gray);
+    border-color: #444855;
+}
+
+[data-theme="dark"] table {
+    background-color: #232631;
+    color: var(--gray);
+}
+
+[data-theme="dark"] th {
+    background-color: #2c2f38;
+}
+
+[data-theme="dark"] tr:nth-child(even) {
+    background-color: #1f222a;
+}
+
+[data-theme="dark"] a {
+    color: var(--blue);
+}
+
+[data-theme="dark"] .task-completed td {
+    opacity: 0.5;
+}
+
+/* Native HTML5 dialog — restyled to match site palette */
+dialog#contactSuccessDialog {
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 480px;
+    background-color: var(--tint);
+    color: var(--gray);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+dialog#contactSuccessDialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+dialog#contactSuccessDialog h2 {
+    margin-top: 0;
+    color: var(--bronze);
+}
+
+dialog#contactSuccessDialog button {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background-color: var(--gold);
+    color: #1a1c22;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+[data-theme="dark"] dialog#contactSuccessDialog {
+    background-color: #232631;
+    border-color: var(--gold);
+}

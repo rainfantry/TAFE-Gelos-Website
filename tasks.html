@@ -3,115 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gelos Enterprises - Jobs</title>
-  <!-- Pure custom CSS - No Bootstrap -->
-  <link rel="stylesheet" href="styles.css">
+  <title>Gelos Enterprises - Tasks</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <!-- Skip navigation for accessibility -->
-  <a class="skip-link" href="#main-content">Skip to main content</a>
-
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="container">
-      <a class="navbar-brand" href="index.html">
-        <img src="logo-header.png" alt="Gelos Enterprises - Home">
+  <!-- NAVBAR -->
+  <nav>
+      <a href="index.html">
+        <img class="logo" src="img/logo-header.png" alt="Gelos Enterprises logo">
       </a>
-      <!-- Hamburger button for mobile - controlled by pure JS -->
-      <button class="navbar-toggler" type="button" id="navToggle" 
-              aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">
-        <span class="navbar-toggler-icon"></span>
+      <!-- HAMBURGARGH -->
+      <button class="menu-toggle" type="button" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">☰
       </button>
-      <!-- Collapsible navigation menu -->
-      <div class="navbar-collapse" id="mainNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="index.html">Home</a>
+      <!-- NAV MENU -->
+      <div id="mainNav">
+        <ul>
+          <li>
+            <a href="index.html">Home</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="tasks.html">Jobs</a>
+          <li>
+            <a href="tasks.html" aria-current="page">Tasks</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="contact.html">Contact</a>
+          <li>
+            <a href="contact.html">Contact Us</a>
           </li>
         </ul>
+        <!-- Dark mode toggle button -->
+        <button type="button" id="themeToggle"
+                aria-label="Switch to dark theme" title="Switch to dark theme">☽</button>
       </div>
-    </div>
   </nav>
 
   <!-- Main content -->
-  <main id="main-content" class="container my-4">
-    <h1>Job Tracker</h1>
+  <main>
+    <h1>Tasks</h1>
 
     <!-- Search section -->
-    <section class="search-section" aria-label="Search Jobs">
-      <h2>Search Jobs</h2>
-      <div class="row g-2 align-items-end">
-        <div class="col-md-8">
-          <label for="searchInput" class="form-label">Search by Job name</label>
-          <input type="text" class="form-control" id="searchInput"
-                 placeholder="Enter exact Job name">
-        </div>
-        <div class="col-md-4">
-          <button type="button" class="btn btn-ge-primary w-100" id="searchBtn">Search</button>
-        </div>
-      </div>
-      <!-- Search results display area -->
+    <section class="search-section" aria-label="Search Tasks">
+      <h2>Search Tasks</h2>
+          <label for="searchInput">Search by Task name</label>
+          <input type="text" id="searchInput"
+                 placeholder="Enter exact Task name">
+              <button type="button" id="searchBtn">Search</button>
+          <!-- Search results display area -->
       <div id="searchResult" role="status" aria-live="polite"></div>
     </section>
 
-    <!-- Add Job form -->
-    <section class="task-form mb-4" aria-label="Add new job">
-      <h2>Add New Job</h2>
-      <form id="taskForm" novalidate>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="taskName" class="form-label">Job Name <span aria-hidden="true">*</span></label>
-            <input type="text" class="form-control" id="taskName" required
-                   aria-required="true" placeholder="Enter Job name">
-            <div class="invalid-feedback">Please enter a Job name.</div>
-          </div>
+    <!-- Add Task form -->
+    <section class="task-form">
+        <h2>Add New Task</h2>
+        <form novalidate>
+            <label for="taskName">Task Name <span aria-hidden="true">*</span></label>
+            <input type="text" id="taskName" required placeholder="Enter Task name">
+            <div class="form-error">Please enter a Task name.</div>
+    
+         <label for="dueDate">Due Date <span aria-hidden="true">*</span></label>
+            <input type="date" id="dueDate" required>
+            <div class="form-error">Please select a due date.</div>
 
-          <div class="col-md-6">
-            <label for="dueDate" class="form-label">Due Date <span aria-hidden="true">*</span></label>
-            <input type="date" class="form-control" id="dueDate" required
-                   aria-required="true">
-            <div class="invalid-feedback">Please select a due date.</div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="priority" class="form-label">Priority Level <span aria-hidden="true">*</span></label>
-            <select class="form-select" id="priority" required aria-required="true">
+            <label for="priority">Priority Level <span aria-hidden="true">*</span></label>
+            <select id="priority" required>
               <option value="" disabled selected>Select priority</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
-            <div class="invalid-feedback">Please select a priority level.</div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="consultant" class="form-label">Staff Member (optional)</label>
-            <select class="form-select" id="consultant">
-              <option value="" selected>None</option>
-              <option value="George Wu - CEO">George Wu - CEO</option>
-              <option value="George Wu - Draftperson">George Wu - ICT Manager</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <button type="submit" class="btn btn-ge-gold">Add Task</button>
-          </div>
-        </div>
+            <div class="form-error">Please select a priority level.</div>
+          
+            <label for="roles">Staff Member or Role (optional)</label>
+            <input type="text" id="roles" list="rolesList" placeholder="Enter staff member or role" autocomplete="off">
+            <datalist id="rolesList">
+              <!-- populated by JS after loadRoles() finishes -->
+            </datalist>   
+            <button type="submit">Add Task</button>
       </form>
     </section>
 
     <!-- Task list -->
     <section aria-label="Task list">
       <h2>Task List</h2>
-      <div class="table-responsive">
-        <table class="table table-striped task-table" id="taskTable">
+        <table id="taskTable">
           <thead>
             <tr>
               <th scope="col">Task Name</th>
@@ -125,50 +97,31 @@
             <!-- Tasks inserted by JavaScript -->
           </tbody>
         </table>
-      </div>
-      <p id="noJobs" class="text-muted">No Tasks added yet. Use the form above to create a Job.</p>
+      <p id="noTasks">No Tasks added yet. Use the form above to create a Task.</p>
     </section>
   </main>
 
   <!-- Footer -->
   <footer>
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start mb-3">
           <a href="index.html">
-            <img src="logo-footer.png" class="footer-logo" alt="Gelos Enterprises - Home">
+            <img src="img/logo-footer.png" class="footer-logo" alt="Gelos Enterprises - Home">
           </a>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <p class="mb-1">
+          <p>
             <strong>P</strong>: (02) 0000 0000<br>
             <strong>E</strong>: george.wu14@studytafensw.edu.au<br>
             <strong>A</strong>: Sydney, New South Wales, Australia
           </p>
-        </div>
-      </div>
-
-      <div class="footer-divider"></div>
-
-      <div class="row text-center">
-        <div class="col-12">
-          <p class="mb-1">
-            <a href="GE_Code-of-conduct-policy-and-procedure.pdf">Privacy Policy</a>
+          <p>
+            <a href="GE_Privacy-policy.pdf">Privacy Policy</a>
             |
-            <a href="GE_Website-Development-Policy-and-Procedure.pdf">Internet Usage Policy</a>
+            <a href="GE_Internet-usage-policy.pdf">Internet Usage Policy</a>
           </p>
-          <p class="footer-acknowledgement">
-            Our Policy
+          <p>
+            &copy; Gelos Enterprises 2026. This is a fictitious organisation created for educational purposes only.
           </p>
-          <p class="footer-acknowledgement">
-            &copy; Gelos Enterprises 2026.
-          </p>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Pure JavaScript - No Bootstrap -->
+       </footer> 
+  
+  <script src="roles.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

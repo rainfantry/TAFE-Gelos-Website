@@ -1,436 +1,663 @@
-/* ============================================================
-   GELOS ENTERPRISES - Task Manager System
-   Pure JavaScript (No Bootstrap or External Libraries)
-   
-   This script handles:
-   - Mobile navigation toggle (pure JS)
-   - Job/task management (add, delete, complete)
-   - Linear search algorithm for finding jobs
-   - Form validation (pure JS)
-   ============================================================ */
-
-// ------------------------------------------------------------
-// 1. GLOBAL DATA STORE
-// ------------------------------------------------------------
-// Array to store all job objects
-// Each job: { name, dueDate, priority, consultant, completed }
-var tasks = [];
-
-// ------------------------------------------------------------
-// 2. INITIALISATION
-// ------------------------------------------------------------
-// Wait for DOM to be fully loaded before attaching event listeners
-document.addEventListener('DOMContentLoaded', function () {
-  
-  // Initialise mobile navigation toggle functionality
-  initNavbarToggle();
-  
-  // Initialise task/job form (tasks.html)
-  var taskForm = document.getElementById('taskForm');
-  if (taskForm) {
-    taskForm.addEventListener('submit', handleAddTask);
-  }
-  
-  // Initialise search button (tasks.html)
-  var searchBtn = document.getElementById('searchBtn');
-  if (searchBtn) {
-    searchBtn.addEventListener('click', handleSearch);
-  }
-  
-  // Allow Enter key in search input to trigger search
-  var searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();  // Prevent form submission
-        handleSearch();      // Run the search
-      }
-    });
-  }
-  
-  // Initialise contact form (contact.html)
-  var contactForm = document.getElementById('contactForm');
-  if (contactForm) {
-    contactForm.addEventListener('submit', handleContactSubmit);
-  }
-});
-
-// ------------------------------------------------------------
-// 3. NAVIGATION FUNCTIONALITY (Pure JS - No Bootstrap)
-// ------------------------------------------------------------
+/* ==================
+GELOS TASK MANAGER
+Author: George Wu
+================ */
+//-----------------------
+// 1. Global Data Store
+//-----------------------
+//Array that will hold every task the user adds
+//Each task is an object: { name, dueDate, priority, consultant, completed}
+/** 
+* @typedef {Object} Task
+* @property {string} name - Task name
+* @property {string} dueDate - ISO date string from <input type="date">, e.g. "2026-05-22"
+* @property {string} priority - One of "Low", "Medium", "High" from <select>
+* @property {string} consultant - Full name resolved from roles.txt via binary search
+*                                 Set to "None" if the user left the role field blank
+* @property {boolean} completed - false when added, toggled true by the complete button.
+ */
 /**
- * Initialise the mobile navbar toggle button
- * This replaces Bootstrap's collapse component with pure JS
+ * @typedef {Object} Role
+ * @property {string} role - The Job Title, e.g. "Marketing Manager"
+ * @property {string} name - The staff members full name. e.g. "George Wu"
+ */
+let tasks = [];
+
+//Array that will hold the parsed staff roles from roles.txt
+// Each entry: { role, name }
+
+let roles = [];
+
+//-----------------------
+// 1b. Task Factory
+//-----------------------
+/** 
+ * Construct a properly-shaped task object from the four form fields.
+ * This is the single source of truth for task structure - every part
+ * of the app builds tasks through here so the shape is consistent
+ * 
+ * @param {string} name - Task name (must be non-empty; validated upstresam)
+ * @param {string} dueDate - ISO date string from <input type="date">.
+ * @param {string} priority - One of "Low", "Medum", "High".
+ * @param {string} consultant - Full name from binary search results, or "" if blank.
+ * @returns {Task} A new task object with completed = false.
+*/
+
+function createTask(name, dueDate, priority, consultant) {
+    return {
+        name: name,
+        dueDate: dueDate,
+        priority: priority,
+        consultant: consultant || "None",
+        completed: false
+    };
+}
+
+//-----------------------
+// 1d. Dark Mode Theme Toggle
+//-----------------------
+/**
+ * Apply the user's saved theme preference (if any) before render.
+ * Called once at the top of init() so the page never flashes light
+ * mode for a dark-mode user.
+ */
+function applySavedTheme() {
+    const saved = localStorage.getItem("ge-theme");
+    if (saved === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+/**
+ * Wire the dark-mode toggle button (present on every page in the nav).
+ * On click: flip data-theme on <html>, persist to localStorage, swap icon.
+ */
+function initThemeToggle() {
+    const toggle = document.getElementById("themeToggle");
+    if (!toggle) return;
+
+    updateThemeIcon(toggle);
+
+    toggle.addEventListener("click", function () {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        if (isDark) {
+            document.documentElement.removeAttribute("data-theme");
+            localStorage.setItem("ge-theme", "light");
+        } else {
+            document.documentElement.setAttribute("data-theme", "dark");
+            localStorage.setItem("ge-theme", "dark");
+        }
+        updateThemeIcon(toggle);
+    });
+}
+
+/**
+ * Update the toggle button's icon and accessibility label to match
+ * the current theme. Sun (☀) = "click to go light"; Moon (☽) = "click to go dark".
+ *
+ * @param {HTMLElement} toggle - The toggle button element.
+ */
+function updateThemeIcon(toggle) {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    toggle.textContent = isDark ? "☀" : "☽";
+    const label = isDark ? "Switch to light theme" : "Switch to dark theme";
+    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("title", label);
+}
+
+//-----------------------
+// 1e. Mobile Nav Toggle
+//-----------------------
+/**
+ * Wire the hamburger button to show/hide the mobile nav menu.
+ * Toggles a "show" class on #mainNav; CSS handles the actual visibility
+ * via the @media (max-width: 768px) #mainNav.show rule.
+ *
+ * Also updates aria-expanded for screen readers and auto-closes the menu
+ * when a nav link is clicked (mobile UX expectation).
  */
 function initNavbarToggle() {
-  var navToggle = document.getElementById('navToggle');
-  var mainNav = document.getElementById('mainNav');
-  
-  if (navToggle && mainNav) {
-    navToggle.addEventListener('click', function () {
-      // Toggle the 'show' class on the navbar-collapse element
-      // This controls visibility via CSS
-      var isExpanded = mainNav.classList.toggle('show');
-      
-      // Update ARIA attributes for accessibility
-      navToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    const navToggle = document.getElementById("navToggle");
+    const mainNav   = document.getElementById("mainNav");
+    if (!navToggle || !mainNav) return;
+
+    navToggle.addEventListener("click", function () {
+        const isOpen = mainNav.classList.toggle("show");
+        navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
-    
-    // Close mobile menu when a nav link is clicked
-    var navLinks = mainNav.querySelectorAll('.nav-link');
-    for (var i = 0; i < navLinks.length; i++) {
-      navLinks[i].addEventListener('click', function () {
-        // Only close if we're in mobile view (menu is collapsible)
-        if (window.innerWidth < 992) {
-          mainNav.classList.remove('show');
-          navToggle.setAttribute('aria-expanded', 'false');
-        }
-      });
+
+    // Close menu when a nav link inside it is clicked (mobile only).
+    const links = mainNav.querySelectorAll("a");
+    for (let i = 0; i < links.length; i++) {
+        links[i].addEventListener("click", function () {
+            if (window.innerWidth <= 768) {
+                mainNav.classList.remove("show");
+                navToggle.setAttribute("aria-expanded", "false");
+            }
+        });
     }
-  }
 }
 
-// ------------------------------------------------------------
-// 4. TASK/JOB MANAGEMENT
-// ------------------------------------------------------------
+//-----------------------
+// 1c. DEBUG HELPER
+//-----------------------
 /**
- * Handle adding a new job from the form
- * Uses manual form validation (no Bootstrap validation classes needed)
- * @param {Event} e - The submit event object
+ * Wipe the tasks arary. Used only for testing in the Devtools console.
+ * Not wired to any UI control - call manually: clearAllTasks()
+ * 
+ * Demonstrates a function with no parameters and no return value
+ * (implicitly returns undefined).
  */
+function clearAllTasks() {
+    tasks.length = 0;
+}
+//-----------------------
+// 2. Insertion algorithm
+//-----------------------
+/**
+ * Insertion algorithm - append a task to the end of the tasks array.
+ * Brief requires a manual algorithm; we do NOT use Array.prototype.push.
+ * 
+ * Steps:
+ * 1. Calculate the next free index (= current array length)
+ * 2. Assign the new task at that index
+ * 3. The .length property auuto-updates because JS arrays track length.
+ * 
+ * Time complexity: 0(1) - Single index assignment.
+ * Space complexity: 0(1) - no temporary structures.
+ * 
+ * @param {Task} newTask - The task object to insert
+ * @returns {number} The new length of the tasks array.
+ */
+function insertTask(newTask) {
+    const insertAt = tasks.length;
+    tasks[insertAt] = newTask;
+    return tasks.length;
+}
+
+//-----------------------
+//3. Form Validation
+//-----------------------
+/** 
+ * Validate the Add Task form fields.
+ * Returns true if all required fields are filled; false otherwise.
+ * Toggle error messages on each fields sibling .form-error div.
+ * 
+ * @returns {boolean} True if valid, false if any required field is empty.
+ * 
+ */
+
+function validateTaskForm() {
+    const nameInput = document.getElementById("taskName");
+    const dueDateInput = document.getElementById("dueDate");
+    const priorityInput = document.getElementById("priority");
+    let isValid = true;
+    // Check Task Name - trim to reject whitespace-only input
+    if (!nameInput.value.trim()) {
+        nameInput.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        nameInput.nextElementSibling.style.display = "none"; // Hide error if name is valid     
+    }
+    // Check Due Date
+    if (!dueDateInput.value) {
+        dueDateInput.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        dueDateInput.nextElementSibling.style.display = "none"; // Hide error if date is valid
+    }
+    // Check Priority
+    if (!priorityInput.value) {
+        priorityInput.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        priorityInput.nextElementSibling.style.display = "none"; // Hide error if priority is valid
+    }
+    return isValid;
+}
+//-----------------------
+// 4. Add Task Handler
+//-----------------------
+/** 
+ * Handle the Add Task Form submission.
+ * 1. Prevent the browsers default form POST/reload behaviour.
+ * 2. Validate the form - bail if invalid.
+ * 3. Read field values.
+ * 4. Build a Task object via the factory.
+ * 5. Insert into the tasks array via the insertion algorithm
+ * 6. Reset the form for the next entry.
+ * 
+ * (rendering to the table will be wired in Sector 9 once we have loops) 
+ *
+ * @param {Event} e - The submit event from the form
+ * 
+ */
+ 
 function handleAddTask(e) {
-  e.preventDefault();  // Prevent default form submission
-  
-  var form = e.target;
-  var isValid = validateTaskForm(form);
-  
-  if (!isValid) {
-    return;  // Stop if validation fails
-  }
-  
-  // Get values from form inputs
-  var name       = document.getElementById('taskName').value.trim();
-  var dueDate    = document.getElementById('dueDate').value;
-  var priority   = document.getElementById('priority').value;
-  var consultant = document.getElementById('consultant').value;
-  
-  // Create job object
-  var task = {
-    name:       name,
-    dueDate:    dueDate,
-    priority:   priority,
-    consultant: consultant || 'None',
-    completed:  false
-  };
-  
-  // Add to tasks array using push() method
-  tasks.push(task);
-  
-  // Reset form and re-render the table
-  form.reset();
-  clearFormValidation(form);  // Remove any validation error states
-  renderTasks();
-}
-
-/**
- * Validate the task form fields
- * Pure JS validation without Bootstrap classes
- * @param {HTMLFormElement} form - The form to validate
- * @returns {boolean} - True if valid, false otherwise
- */
-function validateTaskForm(form) {
-  var isValid = true;
-  
-  // Get form fields
-  var taskName = document.getElementById('taskName');
-  var dueDate  = document.getElementById('dueDate');
-  var priority = document.getElementById('priority');
-  
-  // Validate task name (required)
-  if (!taskName.value.trim()) {
-    showFieldError(taskName);
-    isValid = false;
-  } else {
-    clearFieldError(taskName);
-  }
-  
-  // Validate due date (required)
-  if (!dueDate.value) {
-    showFieldError(dueDate);
-    isValid = false;
-  } else {
-    clearFieldError(dueDate);
-  }
-  
-  // Validate priority (required)
-  if (!priority.value) {
-    showFieldError(priority);
-    isValid = false;
-  } else {
-    clearFieldError(priority);
-  }
-  
-  return isValid;
-}
-
-/**
- * Show error state on a form field
- * @param {HTMLElement} field - The input element
- */
-function showFieldError(field) {
-  field.style.borderColor = '#dc3545';
-  field.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
-}
-
-/**
- * Clear error state from a form field
- * @param {HTMLElement} field - The input element
- */
-function clearFieldError(field) {
-  field.style.borderColor = '';
-  field.style.boxShadow = '';
-}
-
-/**
- * Clear all validation states from a form
- * @param {HTMLFormElement} form - The form to clear
- */
-function clearFormValidation(form) {
-  var fields = form.querySelectorAll('.form-control, .form-select');
-  for (var i = 0; i < fields.length; i++) {
-    clearFieldError(fields[i]);
-  }
-}
-
-// ------------------------------------------------------------
-// 5. RENDERING (Display jobs in the table)
-// ------------------------------------------------------------
-/**
- * Render all jobs into the HTML table
- * Uses DOM manipulation to create rows dynamically
- */
-function renderTasks() {
-  var taskBody = document.getElementById('taskBody');
-  var noJobs   = document.getElementById('noJobs');
-  
-  // Clear existing rows
-  taskBody.innerHTML = '';
-  
-  // Show "No Jobs" message if array is empty
-  if (tasks.length === 0) {
-    if (noJobs) noJobs.style.display = 'block';
-    return;
-  }
-  
-  // Hide "No Jobs" message
-  if (noJobs) noJobs.style.display = 'none';
-  
-  // Loop through tasks array and create table rows
-  // This is a linear traversal algorithm: O(n) time complexity
-  for (var i = 0; i < tasks.length; i++) {
-    var task = tasks[i];
-    var row  = document.createElement('tr');  // Create new table row
-    
-    // Add completed class if task is marked complete
-    if (task.completed) {
-      row.classList.add('task-completed');
+    e.preventDefault();
+    if (!validateTaskForm()) {
+        return; // early return - validation failed, do nothing
     }
-    
-    // Determine CSS class for priority badge
-    var priorityClass = 'badge-' + task.priority.toLowerCase();
-    
-    // Build row HTML content
-    // Using string concatenation for browser compatibility
-    row.innerHTML =
-      '<td>' + escapeHtml(task.name) + '</td>' +
-      '<td>' + task.dueDate + '</td>' +
-      '<td><span class="badge ' + priorityClass + '">' + task.priority + '</span></td>' +
-      '<td>' + escapeHtml(task.consultant) + '</td>' +
-      '<td>' +
-        '<button class="btn btn-sm btn-ge-gold me-1" onclick="completeTask(' + i + ')">' +
-          (task.completed ? 'Undo' : 'Complete') +
-        '</button>' +
-        '<button class="btn btn-sm btn-danger" onclick="deleteTask(' + i + ')">Delete</button>' +
-      '</td>';
-    
-    // Append row to table body
-    taskBody.appendChild(row);
-  }
-}
-
-/**
- * Escape HTML special characters to prevent XSS attacks
- * @param {string} text - The text to escape
- * @returns {string} - Escaped text
- */
-function escapeHtml(text) {
-  if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// ------------------------------------------------------------
-// 6. TASK OPERATIONS (Complete, Delete)
-// ------------------------------------------------------------
-/**
- * Toggle the completed state of a job
- * @param {number} index - The array index of the job
- */
-function completeTask(index) {
-  // Validate index is within bounds
-  if (index >= 0 && index < tasks.length) {
-    // Toggle the boolean value
-    tasks[index].completed = !tasks[index].completed;
-    // Re-render to show updated state
-    renderTasks();
-  }
-}
-
-/**
- * Delete a job from the array
- * Uses array splice() method to remove element
- * @param {number} index - The array index of the job to delete
- */
-function deleteTask(index) {
-  // Validate index is within bounds
-  if (index >= 0 && index < tasks.length) {
-    // Remove 1 element at the specified index
-    tasks.splice(index, 1);
-    // Re-render to update the table
-    renderTasks();
-  }
-}
-
-// ------------------------------------------------------------
-// 7. SEARCH ALGORITHM (Linear Search)
-// ------------------------------------------------------------
-/**
- * Linear Search Algorithm - Find a job by exact name match
- * 
- * Time Complexity: O(n) - we check each element once in worst case
- * Space Complexity: O(1) - only using a few variables
- * 
- * This performs a case-insensitive comparison
- */
-function handleSearch() {
-  var searchInput  = document.getElementById('searchInput');
-  var searchResult = document.getElementById('searchResult');
-  
-  // Get and normalise the search query
-  var query = searchInput.value.trim().toLowerCase();
-  
-  // Clear result if query is empty
-  if (!query) {
-    searchResult.className = 'search-result';
-    searchResult.innerHTML = '';
-    return;
-  }
-  
-  // LINEAR SEARCH ALGORITHM:
-  // Iterate through array from index 0 to length-1
-  // Compare each job name with the query
-  var found = null;
-  var foundIndex = -1;
-  
-  for (var i = 0; i < tasks.length; i++) {
-    // Convert stored name to lowercase for case-insensitive comparison
-    if (tasks[i].name.toLowerCase() === query) {
-      found = tasks[i];      // Store the found job object
-      foundIndex = i;        // Store its index
-      break;                 // Exit loop early (optimisation)
+    const name = document.getElementById("taskName").value.trim();
+    const dueDate = document.getElementById("dueDate").value;
+    const priority = document.getElementById("priority").value;
+    // Look up consultant via binary search on the sorted roles array.
+    // If the role exists, store the canonical name from roles.txt.
+    // If the user typed something not in the list, keep their input verbatim.
+    const consultantInput = document.getElementById("roles").value.trim();
+    let consultant = "";
+    if (consultantInput) {
+        const lookup = binarySearch(roles, consultantInput);
+        consultant = lookup || consultantInput;
     }
-  }
-  
-  // Display search result
-  if (found) {
-    searchResult.className = 'search-result found';
-    searchResult.innerHTML =
-      '<strong>Task found:</strong> ' + escapeHtml(found.name) +
-      ' &mdash; Due: ' + found.dueDate +
-      ' &mdash; Priority: ' + found.priority +
-      ' &mdash; Consultant: ' + escapeHtml(found.consultant) +
-      (found.completed ? ' &mdash; <em>Completed</em>' : '');
-  } else {
-    searchResult.className = 'search-result not-found';
-    searchResult.innerHTML = 'Task not found.';
-  }
-}
+    const newTask = createTask(name, dueDate, priority, consultant);
 
-// ------------------------------------------------------------
-// 8. CONTACT FORM HANDLING
-// ------------------------------------------------------------
-/**
- * Handle contact form submission
- * Pure JS validation and success message display
- * @param {Event} e - The submit event object
- */
-function handleContactSubmit(e) {
-  e.preventDefault();
-  
-  var form = e.target;
-  var isValid = validateContactForm(form);
-  
-  if (!isValid) {
-    return;
-  }
-  
-  // Reset form
-  form.reset();
-  clearFormValidation(form);
-  
-  // Hide form and show success message
-  form.style.display = 'none';
-  
-  var successMsg = document.getElementById('contactSuccess');
-  if (successMsg) {
-    successMsg.style.display = 'block';
-  }
+    insertTask(newTask);
+    e.target.reset();
+    console.log("Task added, Total tasks:", tasks.length, tasks);
+    renderTasks();
 }
-
+//-----------------------
+// 4b. Contact Form Handler
+//-----------------------
 /**
- * Validate contact form fields
- * @param {HTMLFormElement} form - The contact form
- * @returns {boolean} - True if valid
+ * Validate the contact form fields. Returns true if valid, false otherwise.
+ * Toggles .form-error sibling divs the same way validateTaskForm does.
+ *
+ * @param {HTMLFormElement} form - The contact form element.
+ * @returns {boolean} True if all required fields are valid.
  */
 function validateContactForm(form) {
-  var isValid = true;
-  
-  // Get form fields
-  var name     = document.getElementById('contactName');
-  var email    = document.getElementById('contactEmail');
-  var comments = document.getElementById('contactComments');
-  
-  // Validate name
-  if (!name.value.trim()) {
-    showFieldError(name);
-    isValid = false;
-  } else {
-    clearFieldError(name);
-  }
-  
-  // Validate email (basic pattern check)
-  var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email.value.trim() || !emailPattern.test(email.value)) {
-    showFieldError(email);
-    isValid = false;
-  } else {
-    clearFieldError(email);
-  }
-  
-  // Validate comments
-  if (!comments.value.trim()) {
-    showFieldError(comments);
-    isValid = false;
-  } else {
-    clearFieldError(comments);
-  }
-  
-  return isValid;
+    const name     = document.getElementById("contactName");
+    const email    = document.getElementById("contactEmail");
+    const comments = document.getElementById("contactComments");
+    let isValid = true;
+
+    if (!name.value.trim()) {
+        name.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        name.nextElementSibling.style.display = "none";
+    }
+
+    // Basic email pattern — must contain @ and a dot after it.
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.value.trim() || !emailPattern.test(email.value)) {
+        email.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        email.nextElementSibling.style.display = "none";
+    }
+
+    if (!comments.value.trim()) {
+        comments.nextElementSibling.style.display = "block";
+        isValid = false;
+    } else {
+        comments.nextElementSibling.style.display = "none";
+    }
+
+    return isValid;
 }
 
-// ------------------------------------------------------------
-// END OF FILE
-// ------------------------------------------------------------
+/**
+ * Handle the contact form submission.
+ *   1. preventDefault stops the browser's default form POST.
+ *   2. Validate — bail if invalid.
+ *   3. Reset the form for any future message.
+ *   4. Show the success dialog modal (native <dialog> element).
+ *
+ * @param {Event} e - The submit event from the form.
+ */
+function handleContactSubmit(e) {
+    e.preventDefault();
+
+    if (!validateContactForm(e.target)) {
+        return;
+    }
+
+    e.target.reset();
+
+    const dialog = document.getElementById("contactSuccessDialog");
+    if (dialog && typeof dialog.showModal === "function") {
+        dialog.showModal();
+    } else if (dialog) {
+        // Fallback for ancient browsers that don't support <dialog>
+        dialog.setAttribute("open", "");
+    }
+}
+//-----------------------
+// 5. Deletion Algorithm
+//-----------------------
+/**
+ * Deletion algorithm — remove the task at the given index from tasks.
+ * Brief requires a manual algorithm; we do NOT use Array.prototype.splice.
+ *
+ * Steps:
+ *   1. Validate the index is in range [0, tasks.length - 1].
+ *   2. Shift every element after the target one position to the left.
+ *   3. Truncate the array length by 1 to drop the (now duplicated) tail.
+ *
+ * Time complexity:  O(n) — worst case, every element after index 0 moves.
+ * Space complexity: O(1) — in-place shift, no temporary array.
+ *
+ * @param {number} index - The array index of the task to delete.
+ * @returns {boolean} True if a task was deleted, false if index out of range.
+ */
+function deleteTask(index) {
+    if (index < 0 || index >= tasks.length) {
+        return false;
+    }
+    for (let j = index; j < tasks.length - 1; j++) {
+        tasks[j] = tasks[j + 1];
+    }
+    tasks.length = tasks.length - 1;
+    return true;
+}
+
+//-----------------------
+// 6. Complete Toggle
+//-----------------------
+/**
+ * Toggle the completed state of the task at the given index.
+ * Used by the Complete/Undo button in each rendered row.
+ *
+ * @param {number} index - The array index of the task to toggle.
+ * @returns {boolean} The new completed state, or undefined if out of range.
+ */
+function completeTask(index) {
+    if (index < 0 || index >= tasks.length) {
+        return undefined;
+    }
+    tasks[index].completed = !tasks[index].completed;
+    return tasks[index].completed;
+}
+//-----------------------
+// 7. Render Tasks
+//-----------------------
+/**
+ * Render the entire tasks array into the #taskBody table body.
+ * Clears existing rows and rebuilds. Toggles the "No tasks" empty-state
+ * paragraph based on whether the array has any entries.
+ *
+ * Uses a classic for loop because we need the index `i` for the
+ * Complete and Delete button onclick attributes.
+ *
+ * Time complexity: O(n) — one row built per task.
+ */
+function renderTasks() {
+    const tbody  = document.getElementById("taskBody");
+    const empty  = document.getElementById("noTasks");
+    if (!tbody) return;   // not on tasks.html — bail safely
+
+    // Wipe existing rows
+    tbody.innerHTML = "";
+
+    // Toggle the empty-state message
+    if (tasks.length === 0) {
+        if (empty) empty.style.display = "block";
+        return;
+    }
+    if (empty) empty.style.display = "none";
+
+    // Build a row per task
+    for (let i = 0; i < tasks.length; i++) {
+        const { name, dueDate, priority, consultant, completed } = tasks[i];
+        const row = document.createElement("tr");
+
+        if (completed) {
+            row.classList.add("task-completed");
+        }
+
+        row.innerHTML =
+            "<td>" + escapeHtml(name) + "</td>" +
+            "<td>" + dueDate + "</td>" +
+            "<td>" + priority + "</td>" +
+            "<td>" + escapeHtml(consultant) + "</td>" +
+            "<td>" +
+                "<button type='button' onclick='handleCompleteClick(" + i + ")'>" +
+                    (completed ? "Undo" : "Complete") +
+                "</button> " +
+                "<button type='button' onclick='handleDeleteClick(" + i + ")'>Delete</button>" +
+            "</td>";
+
+        tbody.appendChild(row);
+    }
+}
+
+/**
+ * Escape HTML special characters to prevent XSS via task names or
+ * consultant strings that contain markup.
+ *
+ * @param {string} text - Raw text from user input.
+ * @returns {string} Escaped text safe for innerHTML insertion.
+ */
+function escapeHtml(text) {
+    if (!text) return "";
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/**
+ * Button click handler for Complete/Undo — invoked from inline onclick.
+ * Toggles state and re-renders.
+ */
+function handleCompleteClick(index) {
+    completeTask(index);
+    renderTasks();
+}
+
+/**
+ * Button click handler for Delete — invoked from inline onclick.
+ * Removes the task and re-renders.
+ */
+function handleDeleteClick(index) {
+    deleteTask(index);
+    renderTasks();
+}
+
+
+//-----------------------
+// 8a. Sequential Search Algorithm
+//-----------------------
+/**
+ * Sequential search — find a task by exact name match (case-insensitive).
+ * Brief requires a manual algorithm; we do NOT use Array.prototype.indexOf
+ * or .find or .includes.
+ *
+ * Walks the tasks array element by element. Returns the index of the
+ * first match, or -1 if no task matches. The early return on match
+ * keeps the average case below the O(n) worst case.
+ *
+ * Time complexity:  O(n) — worst case, scans the whole array.
+ * Space complexity: O(1) — no temporary structures.
+ *
+ * @param {string} query - The task name to search for (case-insensitive).
+ * @returns {number} Index of the first matching task, or -1 if not found.
+ */
+function sequentialSearch(query) {
+    const q = query.toLowerCase();
+    for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].name.toLowerCase() === q) {
+            return i;
+        }
+    }
+    return -1;
+}
+//-----------------------
+// 8b. Binary Search Algorithm
+//-----------------------
+/**
+ * Binary search — find a role in the sorted roles array and return the
+ * matched consultant's name. Brief requires a manual algorithm.
+ *
+ * Requires the input array to be SORTED by .role (case-insensitive).
+ * We sort once after loading roles.txt — see loadRoles() in Section 8c.
+ *
+ * Iteratively halves the search window:
+ *   - mid = Math.floor((low + high) / 2)
+ *   - If sortedArr[mid].role === query → return the name (found)
+ *   - If sortedArr[mid].role <  query → search upper half (low = mid + 1)
+ *   - If sortedArr[mid].role >  query → search lower half (high = mid - 1)
+ *
+ * Time complexity:  O(log n) — search space halves each iteration.
+ * Space complexity: O(1) — only three pointer variables.
+ *
+ * @param {Role[]} sortedArr - The roles array, sorted by .role.
+ * @param {string} query     - The role title to look up.
+ * @returns {string|null}    - The consultant's name, or null if not found.
+ */
+function binarySearch(sortedArr, query) {
+    let low  = 0;
+    let high = sortedArr.length - 1;
+    const q  = query.toLowerCase();
+
+    while (low <= high) {
+        const mid    = Math.floor((low + high) / 2);
+        const midKey = sortedArr[mid].role.toLowerCase();
+
+        if (midKey === q) {
+            return sortedArr[mid].name;
+        }
+        if (midKey < q) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    return null;
+}
+//-----------------------
+// 8c. Load Roles
+//-----------------------
+/**
+ * Load the staff roles into the global roles array from window.ROLES_DATA.
+ * roles.js (auto-generated from roles.txt and loaded by a <script> tag
+ * before app.js on every page) defines window.ROLES_DATA as a pre-sorted
+ * array of {role, name} objects.
+ *
+ * Embedding the data instead of fetching it means the site runs under
+ * file:// without needing a local web server — browsers block fetch() of
+ * local files under file:// for security reasons.
+ *
+ * @returns {number} The number of roles loaded into the global roles array.
+ */
+function loadRoles() {
+    // Roles are now embedded in roles.js (auto-generated from roles.txt) and
+    // exposed on window.ROLES_DATA. Reading from there means the site works
+    // under file:// without needing a local web server (fetch() of local files
+    // is blocked by browser CORS policy under file://).
+    if (!window.ROLES_DATA || !Array.isArray(window.ROLES_DATA)) {
+        console.error("loadRoles: window.ROLES_DATA missing. Check roles.js loads before app.js.");
+        return 0;
+    }
+    // Data is already sorted at generation time, so no runtime sort needed.
+    for (let i = 0; i < window.ROLES_DATA.length; i++) {
+        roles[roles.length] = window.ROLES_DATA[i];
+    }
+    console.log("Loaded " + roles.length + " roles.");
+    populateRolesDatalist();
+    return roles.length;
+}
+
+//-----------------------
+// 8c2. Populate Roles Datalist
+//-----------------------
+/**
+ * Fill the #rolesList <datalist> with one <option> per loaded role.
+ * The browser then provides native filter-as-you-type suggestions
+ * in any <input list="rolesList"> field.
+ *
+ * Each option's value is "Role Title — Person Name" so the user can
+ * search by either the role or the person. binarySearch still matches
+ * on the role title only (text after — is informational).
+ *
+ * Called from loadRoles() once parsing completes.
+ */
+function populateRolesDatalist() {
+    const dl = document.getElementById("rolesList");
+    if (!dl) return;
+    dl.innerHTML = "";
+    for (let i = 0; i < roles.length; i++) {
+        const opt = document.createElement("option");
+        opt.value = roles[i].role;                          // what gets typed into the input
+        opt.label = roles[i].role + " — " + roles[i].name;  // what shows in the dropdown
+        dl.appendChild(opt);
+    }
+}
+
+//-----------------------
+// 8d. Search Button Handler
+//-----------------------
+/**
+ * Handle the Search button click on tasks.html. Reads the query from
+ * #searchInput, runs the sequential-search algorithm, and writes the
+ * result (or "Task not found") into #searchResult.
+ */
+function handleSearch() {
+    const inputEl  = document.getElementById("searchInput");
+    const resultEl = document.getElementById("searchResult");
+    if (!inputEl || !resultEl) return;
+
+    const query = inputEl.value.trim();
+    if (!query) {
+        resultEl.textContent = "";
+        return;
+    }
+
+    const idx = sequentialSearch(query);
+    if (idx === -1) {
+        resultEl.textContent = "Task not found.";
+    } else {
+        const t = tasks[idx];
+        resultEl.textContent =
+            "Found: " + t.name +
+            " | Due: " + t.dueDate +
+            " | Priority: " + t.priority +
+            " | Consultant: " + t.consultant +
+            (t.completed ? " | COMPLETED" : "");
+    }
+}
+//-----------------------
+// 9. Bootstrap
+//------------------------
+/**
+ * Application entry point. Called once the DOM is ready.
+ * Wires up event listeners now that the DOM exists.
+ */
+function init() {
+    applySavedTheme();
+    console.log("app.js loaded. tasks:", tasks, "roles:", roles);
+
+    const taskForm = document.querySelector(".task-form form");
+    if (taskForm) taskForm.addEventListener("submit", handleAddTask);
+
+    const searchBtn = document.getElementById("searchBtn");
+    if (searchBtn) searchBtn.addEventListener("click", handleSearch);
+    // Contact form (only on contact.html)
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+        contactForm.addEventListener("submit", handleContactSubmit);
+    }
+
+    // Contact success dialog close button
+    const contactDialogClose = document.getElementById("contactDialogClose");
+    if (contactDialogClose) {
+        contactDialogClose.addEventListener("click", function () {
+            const d = document.getElementById("contactSuccessDialog");
+            if (d && typeof d.close === "function") d.close();
+        });
+    }
+    initThemeToggle();
+    initNavbarToggle();  
+
+    loadRoles();
+    renderTasks();
+}
+
+// Wait until the HTML is fully parsed before running init()
+// Without this guard, getElementById() can return null because
+// the elements don't exist in the DOM yet when the script runs
+document.addEventListener("DOMContentLoaded", init);
